@@ -1,0 +1,10 @@
+## Interface: 80300
+## Title: Agustinso Auto Loot
+## Notes: Autoloots certain (specified) things
+## Author: agustinso
+## Version: 1.0
+
+##SavedVariablesPerCharacter: ItemList
+
+
+main.lua
