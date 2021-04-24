@@ -6,15 +6,18 @@ local function LootCommandHandler(ItemLink)
             Suffix, Unique, LinkLvl, Name = string.find(ItemLink,
             "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*):?(%d*):?(%-?%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
         print(Id)
-        print(Name)
+        flag = 0
         for _,v in pairs(ItemList) do
           if v == ItemLink then
-            -- do something
+                flag = 1
             break
           end
         end
+        if flag == 0 then
+            table.insert(ItemList,Id);
+        end
     else
-        print("Hello, " .. UnitName("player") .. "!")
+        print("Usage: /agus [ItemLink]")
     end
 end
 --LOOT_OPENED
