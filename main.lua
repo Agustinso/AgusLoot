@@ -1,14 +1,31 @@
-SLASH_AGUSLOOT1 = "/agus"
+local frame = CreateFrame("FRAME"); -- Need a frame to respond to events
 
-local function LootCommandHandler(ItemLink)
-    if(string.len(ItemLink) > 0) then
-        local _, _, Color, Ltype, Id, Enchant, Gem1, Gem2, Gem3, Gem4,
-            Suffix, Unique, LinkLvl, Name = string.find(ItemLink,
+
+local function GetIdLink(Link)
+    local _,_,_,_, id,_,_,_,_,_,_,_,_,_ = string.find(Link,
             "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*):?(%d*):?(%-?%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
-        print(Id)
+    return id
+end
+
+
+local function IsQuestItem(Link)
+    local _,_,_,_,_,itemType,_,_,_,_,_ = GetItemInfo(GetIdLink(Link))
+    return (itemType == "Quest")
+end
+
+
+local function isCoinSlot(slot)
+    local _, _, lootQuantity, _, _, _, _,_ = GetLootSlotInfo(slot)
+    return (lootQuantity == 0)
+end
+
+
+local function LootCommandHandler(Link)
+    if(string.len(Link) > 0) then
+        local Id = GetIdLink(Link)
         flag = 0
         for _,v in pairs(ItemList) do
-          if v == ItemLink then
+          if v == Id then
                 flag = 1
             break
           end
@@ -20,35 +37,43 @@ local function LootCommandHandler(ItemLink)
         print("Usage: /agus [ItemLink]")
     end
 end
---LOOT_OPENED
-SlashCmdList["AGUSLOOT"] = LootCommandHandler
 
-
-local frame = CreateFrame("FRAME"); -- Need a frame to respond to events
-frame:RegisterEvent("ADDON_LOADED"); -- Fired when saved variables are loaded
-frame:RegisterEvent("LOOT_OPENED"); -- Fired when about to log out
 
 function frame:OnEvent(event, arg1)
     if event == "ADDON_LOADED" and arg1 == "AgusLoot" then -- Our saved variables are ready at this point. If there are none, both variables will set to nil.
         print("[AgusLoot] holi C:")
         if ItemList == nil then
-            ItemList = {}; -- This is the first time this addon is loaded; initialize 
+            ItemList = {}
         end
     elseif event == "LOOT_OPENED" then
-        for i = 1,GetNumLootItems(), +1
-        do
-            SlotLink = GetLootSlotLink(i)
-            local _, _, _, _, id, _, _, _, _, _,
-                _, _, _, Name = string.find(ItemLink,
-                "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*):?(%d*):?(%-?%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
-            
+        for slot = 1,GetNumLootItems() do
+            local SlotLink = GetLootSlotLink(slot)
+            local id = GetIdLink(SlotLink)
             for _,v in pairs(ItemList) do
                 if id == v then
-                    LootSlot(i)
-                break
-              end
+                    LootSlot(slot)
+                end
+            end
+            if IsQuestItem(GetLootSlotLink(slot)) then
+                LootSlot(slot)
+            end
+            if isCoinSlot(slot) then
+                LootSlot(slot)
+            end
+            if (LootSlotHasItem(slot)) then
+                print("LootSlotHasItem true: " .. slot)
             end
         end
     end
 end
+
+SLASH_AGUSLOOT1 = "/agus"
+SLASH_ISQUEST1 = "/isquest"
+
+SlashCmdList["AGUSLOOT"] = LootCommandHandler
+SlashCmdList["ISQUEST"]  = IsQuestItem
+
+
+frame:RegisterEvent("ADDON_LOADED"); -- Fired when saved variables are loaded
+frame:RegisterEvent("LOOT_OPENED"); -- Fired when about to log out
 frame:SetScript("OnEvent", frame.OnEvent);
