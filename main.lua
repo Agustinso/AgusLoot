@@ -2,6 +2,9 @@ local frame = CreateFrame("FRAME"); -- Need a frame to respond to events
 
 
 local function GetIdLink(Link)
+    if Link == nil then
+        return -1
+    end
     local _,_,_,_, id,_,_,_,_,_,_,_,_,_ = string.find(Link,
             "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*):?(%d*):?(%-?%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
     return id
@@ -9,6 +12,9 @@ end
 
 
 local function IsQuestItem(Link)
+    if Link == nil then
+        return false
+    end
     local _,_,_,_,_,itemType,_,_,_,_,_ = GetItemInfo(GetIdLink(Link))
     return (itemType == "Quest")
 end
@@ -47,21 +53,29 @@ function frame:OnEvent(event, arg1)
         end
     elseif event == "LOOT_OPENED" then
         for slot = 1,GetNumLootItems() do
-            local SlotLink = GetLootSlotLink(slot)
-            local id = GetIdLink(SlotLink)
-            for _,v in pairs(ItemList) do
-                if id == v then
+            if (LootSlotHasItem(slot)) then
+                local SlotLink = GetLootSlotLink(slot)
+                local id = GetIdLink(SlotLink)
+                if not (id == -1) then
+                    for _,v in pairs(ItemList) do
+                        if id == v then
+                            LootSlot(slot)
+                        end
+                    end
+                    if IsQuestItem(GetLootSlotLink(slot)) then
+                        LootSlot(slot)
+                    end
+                    if isCoinSlot(slot) then
+                        LootSlot(slot)
+                    end
+                    if (LootSlotHasItem(slot)) then
+                        print("LootSlotHasItem true: " .. slot)
+                    end
+                else
                     LootSlot(slot)
                 end
-            end
-            if IsQuestItem(GetLootSlotLink(slot)) then
+            else
                 LootSlot(slot)
-            end
-            if isCoinSlot(slot) then
-                LootSlot(slot)
-            end
-            if (LootSlotHasItem(slot)) then
-                print("LootSlotHasItem true: " .. slot)
             end
         end
     end
@@ -75,5 +89,5 @@ SlashCmdList["ISQUEST"]  = IsQuestItem
 
 
 frame:RegisterEvent("ADDON_LOADED"); -- Fired when saved variables are loaded
-frame:RegisterEvent("LOOT_OPENED"); -- Fired when about to log out
+frame:RegisterEvent("LOOT_OPENED"); -- Fired when loot windows is opened
 frame:SetScript("OnEvent", frame.OnEvent);
