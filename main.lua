@@ -1,7 +1,7 @@
 local frame = CreateFrame("FRAME"); -- Need a frame to respond to events
 
 
-local function GetIdLink(Link)
+local function GetIdLink(Link) -- returns id from itemlink, by parsing the itemlink string
     if Link == nil then
         return -1
     end
@@ -11,7 +11,7 @@ local function GetIdLink(Link)
 end
 
 
-local function IsQuestItem(Link)
+local function IsQuestItem(Link) -- return boolean for quest item using GetItemInfo
     if Link == nil then
         return false
     end
@@ -20,13 +20,7 @@ local function IsQuestItem(Link)
 end
 
 
-local function isCoinSlot(slot)
-    local _, _, lootQuantity, _, _, _, _,_ = GetLootSlotInfo(slot)
-    return (lootQuantity == 0)
-end
-
-
-local function LootCommandHandler(Link)
+local function LootCommandHandler(Link) -- handles the /agus command
     if(string.len(Link) > 0) then
         local Id = GetIdLink(Link)
         flag = 0
@@ -52,11 +46,11 @@ function frame:OnEvent(event, arg1)
             ItemList = {}
         end
     elseif event == "LOOT_OPENED" then
-        for slot = 1,GetNumLootItems() do
-            if (LootSlotHasItem(slot)) then
+        for slot = 1,GetNumLootItems() do -- loop all the slots
+            if (LootSlotHasItem(slot)) then 
                 local SlotLink = GetLootSlotLink(slot)
                 local id = GetIdLink(SlotLink)
-                if not (id == -1) then
+                if not (id == -1) then -- If is not coin
                     for _,v in pairs(ItemList) do
                         if id == v then
                             LootSlot(slot)
@@ -64,12 +58,6 @@ function frame:OnEvent(event, arg1)
                     end
                     if IsQuestItem(GetLootSlotLink(slot)) then
                         LootSlot(slot)
-                    end
-                    if isCoinSlot(slot) then
-                        LootSlot(slot)
-                    end
-                    if (LootSlotHasItem(slot)) then
-                        print("LootSlotHasItem true: " .. slot)
                     end
                 else
                     LootSlot(slot)
